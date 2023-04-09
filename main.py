@@ -11,7 +11,7 @@ import config
 
 app = FastAPI()
 app.include_router(auth.router)
-#app.include_router(content.router)
+# app.include_router(content.router)
 
 origins = [
     "http://localhost:3000",
@@ -25,14 +25,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request, exc):
     print(f"{repr(exc)}")
     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
 
+
 @lru_cache()
 def get_settings():
     return config.Settings()
+
 
 @app.get("/")
 def read_root(settings: config.Settings = Depends(get_settings)):

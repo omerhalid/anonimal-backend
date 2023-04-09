@@ -1,13 +1,23 @@
-from typing import Optional                         # importing Optional type from typing module
-from fastapi import Depends, HTTPException, status  # importing the necessary FastAPI modules
-from sqlalchemy.orm import Session                  # importing Session from sqlalchemy.orm module
-from datetime import datetime, timedelta            # importing datetime and timedelta from datetime module
-from fastapi.security import OAuth2PasswordBearer   # importing OAuth2PasswordBearer from fastapi.security module
-from jose import JWTError, jwt                      # importing JWTError and jwt from jose module
-from passlib.context import CryptContext            # importing CryptContext from passlib.context module
-from database import engine                         # importing engine from database module
-from model import User                              # importing User from model module
-from schemas import TokenData                       # importing TokenData from schemas module
+# importing Optional type from typing module
+from typing import Optional
+# importing the necessary FastAPI modules
+from fastapi import Depends, HTTPException, status
+# importing Session from sqlalchemy.orm module
+from sqlalchemy.orm import Session
+# importing datetime and timedelta from datetime module
+from datetime import datetime, timedelta
+# importing OAuth2PasswordBearer from fastapi.security module
+from fastapi.security import OAuth2PasswordBearer
+# importing JWTError and jwt from jose module
+from jose import JWTError, jwt
+# importing CryptContext from passlib.context module
+from passlib.context import CryptContext
+# importing engine from database module
+from database import engine
+# importing User from model module
+from model import User
+# importing TokenData from schemas module
+from schemas import TokenData
 
 
 # to get a string like this run:
@@ -19,11 +29,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 def authenticate_user(username: str, password: str):
     with Session(engine) as session:
@@ -36,6 +49,7 @@ def authenticate_user(username: str, password: str):
             return False
         return user
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -45,6 +59,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     with Session(engine) as session:
@@ -61,11 +76,13 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             token_data = TokenData(username=username)
         except JWTError:
             raise credentials_exception
-        results = session.query(User).filter(User.username == token_data.username)
+        results = session.query(User).filter(
+            User.username == token_data.username)
         user = results.first()
         if user is None:
             raise credentials_exception
         return user
+
 
 def get_current_active_user(current_user: User = Depends(get_current_user)):
     return current_user

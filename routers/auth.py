@@ -12,6 +12,7 @@ router = APIRouter(prefix="/api/auth")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 43200
 
+
 @router.post("/token", response_model=Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
@@ -26,6 +27,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.post("/signin", response_model=TokenJson)
 def login_for_access_token(signin_request: SignInRequest):
@@ -42,14 +44,17 @@ def login_for_access_token(signin_request: SignInRequest):
     )
     return {"token": access_token, "token_type": "bearer"}
 
+
 @router.get("/users/me", response_model=UserRead)
 def read_users_me(current_user: User = Depends(get_current_active_user)):
     user = UserRead(username=current_user.username, email=current_user.email)
     return user
 
+
 @router.get("/users/me/items")
 def read_own_items(current_user: User = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
+
 
 @router.post("/signup", response_model=UserRead)
 def sign_up(user: UserIn, session: Session = Depends(get_session)):
@@ -57,7 +62,8 @@ def sign_up(user: UserIn, session: Session = Depends(get_session)):
     role = session.query(Role).filter(Role.name == "ROLE_USER").first()
     user_to_role = UserToRole()
     user_to_role.role = role
-    new_user = User(email=user.email, username=user.username, password=hashed_password)
+    new_user = User(email=user.email, username=user.username,
+                    password=hashed_password)
     new_user.roles.append(user_to_role)
     session.add(new_user)
     session.commit()
